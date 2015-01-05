@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 @State(name = "JythonHelperConfig", storages = {@com.intellij.openapi.components.Storage(file = "$WORKSPACE_FILE$")})
 public class JythonHelperConfig implements PersistentStateComponent<JythonHelperConfig.State> {
     public static class State {
-        public String targetDirectory;
         public String javaLibs[] = new String[0];
     }
 

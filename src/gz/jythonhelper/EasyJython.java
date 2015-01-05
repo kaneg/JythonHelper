@@ -179,6 +179,10 @@ abstract class ClassGenerator {
             {"wait", "toString", "hashCode", "notify", "notifyAll", "getClass", "yield"}));
 
     private String outputDir;
+    public static final String INIT_TEMPLATE = "# encoding: utf-8\n" +
+            "# module %s\n" +
+            "# from (built-in)\n" +
+            "# by generator 999.999\n";
 
     protected ClassGenerator(String outputDir) {
         this.outputDir = outputDir;
@@ -221,6 +225,14 @@ abstract class ClassGenerator {
         return sb.toString();
     }
 
+    void writePyHeader(FileWriter fw, String name) {
+        try {
+            fw.write(String.format(INIT_TEMPLATE, name));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     void ensureInitPy(File dir) {
         File initFile = new File(dir, INIT_PY);
 //        if (initFile.exists() && initFile.lastModified() < startTime) {
@@ -228,7 +240,12 @@ abstract class ClassGenerator {
 //        }
         if (!initFile.exists()) {
             try {
-                initFile.createNewFile();
+                boolean newFile = initFile.createNewFile();
+                if (newFile) {
+                    FileWriter fw = new FileWriter(initFile);
+                    writePyHeader(fw, initFile.getName());
+                    fw.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -326,6 +343,7 @@ class PyClassGenerator extends ClassGenerator {
 
     private void writeClassesFromInitPy(Map<String, StringBuilder> classStringMap, File initPy) throws IOException {
         FileWriter fileWriter = new FileWriter(initPy);
+        writePyHeader(fileWriter, initPy.getName());
         for (StringBuilder classContent : classStringMap.values()) {
             fileWriter.write(classContent.toString());
         }

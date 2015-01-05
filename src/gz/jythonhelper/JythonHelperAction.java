@@ -3,11 +3,16 @@ package gz.jythonhelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.jetbrains.python.sdk.PythonSdkType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,7 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
  * Time: 10:37 AM
  */
 public class JythonHelperAction extends AnAction {
-    public void actionPerformed(AnActionEvent event) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
         final Project project = event.getData(PlatformDataKeys.PROJECT);
         final VirtualFile[] vFiles = event.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         if (vFiles == null || vFiles.length == 0) {
@@ -26,16 +31,24 @@ public class JythonHelperAction extends AnAction {
         VirtualFile target = vFiles[0];
         JythonHelperConfig config = JythonHelperConfig.getConfig(project);
         JythonHelperConfig.State state = config.getState();
-        if (state == null || state.targetDirectory == null || state.targetDirectory.isEmpty()) {
-            Messages.showInfoMessage("You need to set output directory and Java library first. Click OK to setting.", "Info");
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, JythonHelperConfigForm.JYTHON_HELPER);
+        String targetDirectory = getTargetDirectory(target, project);
+        if (targetDirectory == null) {
             return;
         }
-        String targetDirectory = state.targetDirectory;
         String[] javaLibs = state.javaLibs;
         generatePy(targetDirectory, javaLibs, target.getPath());
-        Messages.showInfoMessage("Python files have been generated in directory:" + state.targetDirectory, "Info");
+        Messages.showInfoMessage("Python files have been generated in directory:" + targetDirectory, "Info");
         LocalFileSystem.getInstance().refresh(false);
+    }
+
+    private String getTargetDirectory(VirtualFile vf, Project project) {
+        Module module = ModuleUtil.findModuleForFile(vf, project);
+        Sdk sdk = PythonSdkType.findPythonSdk(module);
+        if (sdk == null) {
+            Messages.showErrorDialog(project, "No SDK FOUND", "No SDK FOUND");
+            return null;
+        }
+        return PythonSdkType.getSkeletonsPath(PathManager.getSystemPath(), sdk.getHomePath());
     }
 
     private void generatePy(String outputDir, String[] libs, String... files) {

@@ -1,15 +1,19 @@
 <idea-plugin version="2">
     <id>JythonHelper</id>
     <name>JythonHelper</name>
-    <version>1.1</version>
+    <version>1.2</version>
     <vendor email="gzkaneg@gmail.com">Kane</vendor>
     <idea-version since-build="117.105"/>
+    <depends>com.intellij.modules.python</depends>
     <description>
         Goal:Generate Python skeleton for Java classes in Jython projects.
         Usage: Add skeleton output directory in setting: 'Jython Helper' and Java libraries path(jars). Then apply
         'Jython Helper' by right clicking for single Jython file or directory containing Jython files.
         Code at github: https://github.com/kaneg/JythonHelper
     </description>
+    <change-notes>
+        1.2: No longer needs to manually set Target Directory. All skeletons can be generated into SDK's binary folder.
+    </change-notes>
     <depends>com.intellij.modules.python</depends>
     <actions>
         <!-- Add your actions here -->

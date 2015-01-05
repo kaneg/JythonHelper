@@ -27,9 +27,7 @@ public class JythonHelperConfigForm implements Configurable {
     public static final String JYTHON_HELPER = "Jython Helper";
     private JPanel mainPane;
     private JList<String> libList;
-    private JTextField targetDirectoryField;
     private JButton addLibButton;
-    private JButton chooseFileButton;
     private JButton removeLibButton;
     private Project project;
 
@@ -62,25 +60,6 @@ public class JythonHelperConfigForm implements Configurable {
                 }
             }
         });
-        chooseFileButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                FileChooserDescriptor fcd = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-                VirtualFile fileByUrl = null;
-                String targetDirectory = getState().targetDirectory;
-                if (targetDirectory != null) {
-                    fileByUrl = VirtualFileManager.getInstance().findFileByUrl(targetDirectory);
-                }
-                FileChooser.chooseFiles(fcd, project, fileByUrl, new Consumer<List<VirtualFile>>() {
-                    @Override
-                    public void consume(List<VirtualFile> virtualFiles) {
-                        for (VirtualFile virtualFile : virtualFiles) {
-                            JythonHelperConfigForm.this.targetDirectoryField.setText(virtualFile.getPresentableUrl());
-                        }
-                    }
-                });
-            }
-        });
     }
 
     @Nls
@@ -109,7 +88,6 @@ public class JythonHelperConfigForm implements Configurable {
     @Override
     public void apply() throws ConfigurationException {
         JythonHelperConfig.State myState = getState();
-        myState.targetDirectory = this.targetDirectoryField.getText();
         ListModel model = this.libList.getModel();
         int size = model.getSize();
         String[] values = new String[size];
@@ -127,7 +105,6 @@ public class JythonHelperConfigForm implements Configurable {
     @Override
     public void reset() {
         JythonHelperConfig.State myState = getState();
-        this.targetDirectoryField.setText(myState.targetDirectory);
         DefaultListModel<String> model = new DefaultListModel<String>();
         String[] values = new String[0];
         if (myState.javaLibs != null) {

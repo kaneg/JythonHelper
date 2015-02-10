@@ -182,7 +182,8 @@ abstract class ClassGenerator {
     public static final String INIT_TEMPLATE = "# encoding: utf-8\n" +
             "# module %s\n" +
             "# from (built-in)\n" +
-            "# by generator 999.999\n";
+            "# by generator 999.999\n" +
+            "# source:%s\n";
 
     protected ClassGenerator(String outputDir) {
         this.outputDir = outputDir;
@@ -225,9 +226,13 @@ abstract class ClassGenerator {
         return sb.toString();
     }
 
-    void writePyHeader(FileWriter fw, String name) {
+    void writePyHeader(FileWriter fw, String name, URL resourceURL) {
+        String source = "";
+        if (resourceURL != null) {
+            source = resourceURL.toString();
+        }
         try {
-            fw.write(String.format(INIT_TEMPLATE, name));
+            fw.write(String.format(INIT_TEMPLATE, name, source));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -243,7 +248,7 @@ abstract class ClassGenerator {
                 boolean newFile = initFile.createNewFile();
                 if (newFile) {
                     FileWriter fw = new FileWriter(initFile);
-                    writePyHeader(fw, initFile.getName());
+                    writePyHeader(fw, initFile.getName(), null);
                     fw.close();
                 }
             } catch (IOException e) {
@@ -305,7 +310,13 @@ class PyClassGenerator extends ClassGenerator {
         File initPy = new File(directory, INIT_PY);
         Map<String, StringBuilder> classStringMap = readClassesFromInitPy(initPy);
         classStringMap.put(clazz.getSimpleName(), new StringBuilder(classContent));
-        writeClassesFromInitPy(classStringMap, initPy);
+        String name = clazz.getName().replace('.', '/') + ".class";
+        ClassLoader classLoader = clazz.getClassLoader();
+        URL resourceURL = null;
+        if (classLoader != null) {
+            resourceURL = classLoader.getResource(name);
+        }
+        writeClassesFromInitPy(classStringMap, initPy, resourceURL);
     }
 
     public void createPyForClass0(Class clazz) throws IOException {
@@ -341,9 +352,9 @@ class PyClassGenerator extends ClassGenerator {
         return maps;
     }
 
-    private void writeClassesFromInitPy(Map<String, StringBuilder> classStringMap, File initPy) throws IOException {
+    private void writeClassesFromInitPy(Map<String, StringBuilder> classStringMap, File initPy, URL resourceURL) throws IOException {
         FileWriter fileWriter = new FileWriter(initPy);
-        writePyHeader(fileWriter, initPy.getName());
+        writePyHeader(fileWriter, initPy.getName(), resourceURL);
         for (StringBuilder classContent : classStringMap.values()) {
             fileWriter.write(classContent.toString());
         }

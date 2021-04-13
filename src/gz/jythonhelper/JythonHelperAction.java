@@ -3,7 +3,6 @@ package gz.jythonhelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -11,7 +10,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.jetbrains.python.sdk.PythonSdkType;
+import com.jetbrains.python.sdk.PythonSdkUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,12 +42,12 @@ public class JythonHelperAction extends AnAction {
 
     private String getTargetDirectory(VirtualFile vf, Project project) {
         Module module = ModuleUtil.findModuleForFile(vf, project);
-        Sdk sdk = PythonSdkType.findPythonSdk(module);
+        Sdk sdk = PythonSdkUtil.findPythonSdk(module);
         if (sdk == null) {
             Messages.showErrorDialog(project, "No SDK FOUND", "No SDK FOUND");
             return null;
         }
-        return PythonSdkType.getSkeletonsPath(PathManager.getSystemPath(), sdk.getHomePath());
+        return PythonSdkUtil.getSkeletonsPath(sdk);
     }
 
     private void generatePy(String outputDir, String[] libs, String... files) {
